@@ -1,0 +1,16 @@
+services:
+  app:
+    build: .
+    environment:
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      LLM_MODEL: ${LLM_MODEL:-llama-3.3-70b-versatile}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-sentence-transformers/all-MiniLM-L6-v2}
+      CHROMA_PERSIST_DIR: /data/chroma_db
+      DATA_DIR: /data/documents
+    volumes:
+      - ./data:/data/documents
+      - chroma_db:/data/chroma_db
+    command: ["--help"]
+
+volumes:
+  chroma_db:
