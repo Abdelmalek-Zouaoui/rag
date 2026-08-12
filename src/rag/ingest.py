@@ -55,12 +55,27 @@ def split_documents(documents):
     return chunks
 
 
+def enrich_metadata(chunks):
+    """Trim source to a bare filename; add a chunk_index for file types with no natural location marker."""
+    chunk_counts = {}
+    for chunk in chunks:
+        filename = Path(chunk.metadata.get("source", "")).name
+        chunk.metadata["source"] = filename
+
+        has_location = "page" in chunk.metadata or "row" in chunk.metadata or "Header 1" in chunk.metadata
+        if not has_location:
+            chunk_counts[filename] = chunk_counts.get(filename, 0) + 1
+            chunk.metadata["chunk_index"] = chunk_counts[filename] - 1
+
+    return chunks
+
+
 def build_index(data_dir: str = DATA_DIR, persist_dir: str = CHROMA_PERSIST_DIR):
     documents = load_documents(data_dir)
     if not documents:
         raise ValueError(f"No documents found in '{data_dir}'. Add .txt, .md, or .pdf files first.")
 
-    chunks = split_documents(documents)
+    chunks = enrich_metadata(split_documents(documents))
 
     embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
     Chroma.from_documents(chunks, embedding=embeddings, persist_directory=persist_dir)
