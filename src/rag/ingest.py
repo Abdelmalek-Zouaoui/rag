@@ -1,18 +1,33 @@
 from pathlib import Path
 
 from langchain_chroma import Chroma
-from langchain_community.document_loaders import DirectoryLoader, PyPDFLoader, TextLoader
+from langchain_community.document_loaders import (
+    CSVLoader,
+    DirectoryLoader,
+    Docx2txtLoader,
+    PyPDFLoader,
+    TextLoader,
+    UnstructuredHTMLLoader,
+)
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from rag.config import CHROMA_PERSIST_DIR, DATA_DIR, EMBEDDING_MODEL
 
+LOADERS_BY_EXTENSION = {
+    "txt": TextLoader,
+    "md": TextLoader,
+    "pdf": PyPDFLoader,
+    "docx": Docx2txtLoader,
+    "html": UnstructuredHTMLLoader,
+    "csv": CSVLoader,
+}
+
 
 def load_documents(data_dir: str = DATA_DIR):
     docs = []
-    docs += DirectoryLoader(data_dir, glob="**/*.txt", loader_cls=TextLoader).load()
-    docs += DirectoryLoader(data_dir, glob="**/*.md", loader_cls=TextLoader).load()
-    docs += DirectoryLoader(data_dir, glob="**/*.pdf", loader_cls=PyPDFLoader).load()
+    for extension, loader_cls in LOADERS_BY_EXTENSION.items():
+        docs += DirectoryLoader(data_dir, glob=f"**/*.{extension}", loader_cls=loader_cls).load()
     return docs
 
 
