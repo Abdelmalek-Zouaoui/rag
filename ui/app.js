@@ -53,6 +53,12 @@ function toggleSidebar() {
 toggleSidebarBtn.addEventListener('click', toggleSidebar);
 toggleSidebarTopBtn.addEventListener('click', toggleSidebar);
 
+// On narrow screens the sidebar overlays the chat instead of pushing it
+// aside, so it should start hidden rather than covering the whole page.
+if (window.matchMedia('(max-width: 600px)').matches) {
+    sidebar.classList.add('collapsed');
+}
+
 // ============================================================
 // File list (sidebar)
 // ============================================================
