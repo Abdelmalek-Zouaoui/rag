@@ -1,3 +1,5 @@
+import threading
+
 from fastembed.rerank.cross_encoder import TextCrossEncoder
 from langchain_chroma import Chroma
 from langchain_classic.retrievers import ContextualCompressionRetriever, EnsembleRetriever
@@ -10,7 +12,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_groq import ChatGroq
 
-from rag.config import CHROMA_PERSIST_DIR, DATA_DIR, EMBEDDING_MODEL, GROQ_API_KEY, LLM_MODEL
+from rag.config import CHROMA_PERSIST_DIR, DATA_DIR, EMBEDDING_MODEL, GROQ_API_KEY, LLM_MODEL, ONNX_PROVIDERS
 from rag.ingest import load_documents, split_documents
 
 RERANKER_MODEL = "Xenova/ms-marco-MiniLM-L-6-v2"
@@ -20,7 +22,7 @@ class FastEmbedCrossEncoder(BaseCrossEncoder):
     """Adapts fastembed's ONNX cross-encoder to LangChain's reranker interface (no torch needed)."""
 
     def __init__(self, model_name: str):
-        self._model = TextCrossEncoder(model_name)
+        self._model = TextCrossEncoder(model_name, providers=ONNX_PROVIDERS)
 
     def score(self, text_pairs: list[tuple[str, str]]) -> list[float]:
         return list(self._model.rerank_pairs(text_pairs))
@@ -57,25 +59,25 @@ def format_docs(docs):
 
 def build_chain(data_dir: str = DATA_DIR, persist_dir: str = CHROMA_PERSIST_DIR):
     # 1. Vector Retriever (Semantic search via ChromaDB)
-    embeddings = FastEmbedEmbeddings(model_name=EMBEDDING_MODEL)
+    embeddings = FastEmbedEmbeddings(model_name=EMBEDDING_MODEL, providers=ONNX_PROVIDERS)
     vectorstore = Chroma(persist_directory=persist_dir, embedding_function=embeddings)
-    chroma_retriever = vectorstore.as_retriever(search_kwargs={"k": 6})
+    chroma_retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
 
     # 2. Keyword Retriever (Exact text search via BM25)
     raw_docs = load_documents(data_dir)
     chunks = split_documents(raw_docs)
     bm25_retriever = BM25Retriever.from_documents(chunks)
-    bm25_retriever.k = 6
+    bm25_retriever.k = 3
 
-    # 3. Hybrid Retriever (Combine 50% BM25 + 50% Chroma) → returns 12 candidates
+    # 3. Hybrid Retriever (Combine 50% BM25 + 50% Chroma) → returns 6 candidates
     ensemble_retriever = EnsembleRetriever(
         retrievers=[bm25_retriever, chroma_retriever],
         weights=[0.5, 0.5]
     )
 
-    # 4. Reranker (Cross-Encoder scores each candidate and keeps top 4 best)
+    # 4. Reranker (Cross-Encoder scores each candidate and keeps top 3 best)
     cross_encoder = FastEmbedCrossEncoder(RERANKER_MODEL)
-    reranker = CrossEncoderReranker(model=cross_encoder, top_n=4)
+    reranker = CrossEncoderReranker(model=cross_encoder, top_n=3)
     retriever = ContextualCompressionRetriever(
         base_compressor=reranker,
         base_retriever=ensemble_retriever
@@ -91,9 +93,33 @@ def build_chain(data_dir: str = DATA_DIR, persist_dir: str = CHROMA_PERSIST_DIR)
     )
 
 
+_chain_cache: dict = {}
+_chain_cache_lock = threading.Lock()
+
+
+def get_chain(data_dir: str = DATA_DIR, persist_dir: str = CHROMA_PERSIST_DIR):
+    """Reuse a built chain across requests instead of reloading every model on every message.
+
+    Without this, concurrent chat requests each build their own copy of the embedding
+    model, reranker, and a full BM25 index of the entire corpus at the same time -
+    enough to exceed a 512MB instance under just two simultaneous requests.
+    """
+    key = (data_dir, persist_dir)
+    if key not in _chain_cache:
+        with _chain_cache_lock:
+            if key not in _chain_cache:
+                _chain_cache[key] = build_chain(data_dir=data_dir, persist_dir=persist_dir)
+    return _chain_cache[key]
+
+
+def invalidate_chain_cache():
+    """Call after build_index() adds/removes documents so BM25 picks up the change."""
+    _chain_cache.clear()
+
+
 def ask(question: str, data_dir: str = DATA_DIR, persist_dir: str = CHROMA_PERSIST_DIR) -> str:
-    return build_chain(data_dir=data_dir, persist_dir=persist_dir).invoke(question)
+    return get_chain(data_dir=data_dir, persist_dir=persist_dir).invoke(question)
 
 
 def ask_stream(question: str, data_dir: str = DATA_DIR, persist_dir: str = CHROMA_PERSIST_DIR):
-    return build_chain(data_dir=data_dir, persist_dir=persist_dir).stream(question)
+    return get_chain(data_dir=data_dir, persist_dir=persist_dir).stream(question)

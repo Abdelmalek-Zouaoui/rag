@@ -14,7 +14,7 @@ from langchain_community.document_loaders import (
 from langchain_community.embeddings import FastEmbedEmbeddings
 from langchain_text_splitters import MarkdownHeaderTextSplitter, RecursiveCharacterTextSplitter
 
-from rag.config import CHROMA_PERSIST_DIR, DATA_DIR, EMBEDDING_MODEL
+from rag.config import CHROMA_PERSIST_DIR, DATA_DIR, EMBEDDING_MODEL, ONNX_PROVIDERS
 
 LOADERS_BY_EXTENSION = {
     "txt": TextLoader,
@@ -117,7 +117,7 @@ def build_index(data_dir: str = DATA_DIR, persist_dir: str = CHROMA_PERSIST_DIR)
         print("No changes detected. Index is already up to date.")
         return
 
-    embeddings = FastEmbedEmbeddings(model_name=EMBEDDING_MODEL)
+    embeddings = FastEmbedEmbeddings(model_name=EMBEDDING_MODEL, providers=ONNX_PROVIDERS)
     store = Chroma(persist_directory=persist_dir, embedding_function=embeddings)
 
     for filename in deleted + changed_or_new:

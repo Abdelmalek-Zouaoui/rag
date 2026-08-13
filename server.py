@@ -26,6 +26,7 @@ Run with:
 from __future__ import annotations
 
 import shutil
+import threading
 from pathlib import Path
 from typing import List
 
@@ -36,7 +37,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 # Same public API your cli.py already relies on.
-from rag.chain import ask, ask_stream
+from rag.chain import ask_stream, invalidate_chain_cache
 from rag.ingest import build_index
 
 # ------------------------------------------------------------------
@@ -66,6 +67,12 @@ app.add_middleware(
 )
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+# The embedding/reranker models are large enough relative to a 512MB instance
+# that running two requests through them at once can exceed the memory limit
+# on its own. Serializing upload/chat work trades a bit of queuing latency
+# for not crashing - reasonable for a low-traffic demo.
+GENERATION_LOCK = threading.Lock()
 
 
 class ChatRequest(BaseModel):
@@ -127,10 +134,18 @@ async def upload_files(files: List[UploadFile] = File(...)) -> UploadResponse:
     # MVP approach: re-embed everything in data/ on every upload.
     # PLAN.md already tracks "incremental re-indexing" as a follow-up —
     # swap this call once build_index() supports it, no other change needed here.
+    if not GENERATION_LOCK.acquire(blocking=False):
+        raise HTTPException(
+            status_code=429,
+            detail="Server is busy processing another request. Please try again in a few seconds.",
+        )
     try:
         build_index()
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(status_code=500, detail=f"Indexing failed: {exc}") from exc
+    finally:
+        GENERATION_LOCK.release()
+    invalidate_chain_cache()
 
     return UploadResponse(saved=saved, skipped=skipped)
 
@@ -145,10 +160,15 @@ def chat(payload: ChatRequest):
         raise HTTPException(status_code=400, detail="Message cannot be empty.")
 
     def token_generator():
+        if not GENERATION_LOCK.acquire(blocking=False):
+            yield "⚠️ Server is busy processing another request. Please try again in a few seconds."
+            return
         try:
             for chunk in ask_stream(question):
                 yield chunk
         except Exception as exc:
             yield f"\n\n⚠️ Error: {exc}"
+        finally:
+            GENERATION_LOCK.release()
 
     return StreamingResponse(token_generator(), media_type="text/plain")
