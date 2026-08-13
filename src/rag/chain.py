@@ -13,9 +13,15 @@ from rag.config import CHROMA_PERSIST_DIR, DATA_DIR, EMBEDDING_MODEL, GROQ_API_K
 from rag.ingest import load_documents, split_documents
 
 PROMPT = ChatPromptTemplate.from_template(
-    """Answer the question using only the context below. 
-Include clear source citations (e.g. [Source: filename, Page X]) at the end of your answer based on the context provided.
-If the context doesn't contain the answer, say you don't know.
+    """You are a helpful document assistant. Answer the question using ONLY the context below.
+
+Formatting rules:
+- Use clear paragraphs separated by blank lines.
+- Use bullet points or numbered lists when listing multiple items.
+- Use **bold** for key terms or important phrases.
+- Keep your answer well-structured and easy to read.
+- At the end, list the sources you used (e.g. [Source: filename, Page X]).
+- If the context doesn't contain the answer, say you don't know.
 
 Context:
 {context}

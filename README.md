@@ -4,6 +4,9 @@ A retrieval-augmented generation (RAG) pipeline built with LangChain: generation
 [Groq API](https://console.groq.com) (fast hosted inference of open models like Llama 3), and
 embeddings via a local HuggingFace `sentence-transformers` model (runs on CPU, no API key needed).
 
+A FastAPI server + web UI (`server.py` / `ui/`) sits on top of the same pipeline, so you can
+upload documents and chat from the browser instead of the CLI.
+
 ## Prerequisites
 
 - Python 3.10+
@@ -21,7 +24,7 @@ copy .env.example .env
 
 Set `GROQ_API_KEY` in `.env`.
 
-## Usage (local Python)
+## Usage (local Python, CLI)
 
 1. Drop your documents (`.txt`, `.md`, `.pdf`) into `data/`.
 2. Build the index:
@@ -32,6 +35,26 @@ Set `GROQ_API_KEY` in `.env`.
    ```
    python -m rag.cli query "What is this document about?"
    ```
+
+## Usage (web server)
+
+The web UI wraps the same `ingest`/`query` pipeline behind a browser chat interface, with
+drag-and-drop-free file upload straight into `data/`.
+
+1. Finish the local Python setup above (venv, `pip install -e .`, `pip install -r requirements.txt`,
+   `.env` with `GROQ_API_KEY` set).
+2. Start the server:
+   ```
+   uvicorn server:app --reload
+   ```
+3. Open [http://127.0.0.1:8000](http://127.0.0.1:8000) in your browser.
+4. Upload a document with the attach button — it's saved into `data/` and the index is rebuilt
+   automatically. Then ask questions in the chat box.
+
+Notes:
+- Every upload currently triggers a full re-index of everything in `data/` (see `PLAN.md`'s
+  "incremental re-indexing" item for the planned improvement).
+- `--reload` is for local development only; drop it for anything closer to production.
 
 ## Usage (Docker)
 
@@ -62,6 +85,8 @@ src/rag/
   chain.py    retrieval + generation chain
   cli.py      command-line entrypoint
 data/         source documents (gitignored contents, kept via .gitkeep)
+ui/           web frontend (index.html, style.css, app.js)
+server.py     FastAPI server: serves ui/, handles uploads, answers chat questions
 ```
 
 ## Swapping models or providers
