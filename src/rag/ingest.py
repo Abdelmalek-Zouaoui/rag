@@ -11,10 +11,10 @@ from langchain_community.document_loaders import (
     PyPDFLoader,
     TextLoader,
 )
-from langchain_community.embeddings import FastEmbedEmbeddings
 from langchain_text_splitters import MarkdownHeaderTextSplitter, RecursiveCharacterTextSplitter
 
-from rag.config import CHROMA_PERSIST_DIR, DATA_DIR, EMBEDDING_MODEL, ONNX_PROVIDERS
+from rag.config import CHROMA_PERSIST_DIR, DATA_DIR
+from rag.models import get_embeddings
 
 LOADERS_BY_EXTENSION = {
     "txt": TextLoader,
@@ -57,15 +57,19 @@ def scan_data_dir(data_dir: str) -> dict:
     }
 
 
-def load_manifest(persist_dir: str) -> dict:
-    manifest_path = Path(persist_dir) / MANIFEST_FILENAME
-    if manifest_path.exists():
-        return json.loads(manifest_path.read_text())
+def manifest_path(persist_dir: str, collection_name: str) -> Path:
+    return Path(persist_dir) / f"manifest_{collection_name}.json"
+
+
+def load_manifest(persist_dir: str, collection_name: str) -> dict:
+    path = manifest_path(persist_dir, collection_name)
+    if path.exists():
+        return json.loads(path.read_text())
     return {}
 
 
-def save_manifest(manifest: dict, persist_dir: str):
-    (Path(persist_dir) / MANIFEST_FILENAME).write_text(json.dumps(manifest, indent=2))
+def save_manifest(manifest: dict, persist_dir: str, collection_name: str):
+    manifest_path(persist_dir, collection_name).write_text(json.dumps(manifest, indent=2))
 
 
 def split_documents(documents):
@@ -103,8 +107,8 @@ def enrich_metadata(chunks):
     return chunks
 
 
-def build_index(data_dir: str = DATA_DIR, persist_dir: str = CHROMA_PERSIST_DIR):
-    manifest = load_manifest(persist_dir)
+def build_index(data_dir: str = DATA_DIR, persist_dir: str = CHROMA_PERSIST_DIR, collection_name: str = "default"):
+    manifest = load_manifest(persist_dir, collection_name)
     current_hashes = scan_data_dir(data_dir)
 
     if not current_hashes and not manifest:
@@ -117,8 +121,7 @@ def build_index(data_dir: str = DATA_DIR, persist_dir: str = CHROMA_PERSIST_DIR)
         print("No changes detected. Index is already up to date.")
         return
 
-    embeddings = FastEmbedEmbeddings(model_name=EMBEDDING_MODEL, providers=ONNX_PROVIDERS)
-    store = Chroma(persist_directory=persist_dir, embedding_function=embeddings)
+    store = Chroma(persist_directory=persist_dir, embedding_function=get_embeddings(), collection_name=collection_name)
 
     for filename in deleted + changed_or_new:
         store.delete(where={"source": filename})
@@ -134,11 +137,11 @@ def build_index(data_dir: str = DATA_DIR, persist_dir: str = CHROMA_PERSIST_DIR)
     for filename in deleted:
         manifest.pop(filename)
     manifest.update({name: current_hashes[name] for name in changed_or_new})
-    save_manifest(manifest, persist_dir)
+    save_manifest(manifest, persist_dir, collection_name)
 
     print(
         f"Updated {len(changed_or_new)} file(s), removed {len(deleted)} file(s) "
-        f"from '{persist_dir}'."
+        f"from '{persist_dir}' (collection '{collection_name}')."
     )
 
 
