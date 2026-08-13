@@ -5,6 +5,7 @@ from pathlib import Path
 from langchain_chroma import Chroma
 from langchain_community.document_loaders import (
     CSVLoader,
+    DirectoryLoader,
     Docx2txtLoader,
     PyPDFLoader,
     TextLoader,
@@ -28,6 +29,13 @@ CHUNK_SIZE = 1000
 CHUNK_OVERLAP = 200
 MARKDOWN_HEADERS = [("#", "Header 1"), ("##", "Header 2"), ("###", "Header 3")]
 MANIFEST_FILENAME = "manifest.json"
+
+
+def load_documents(data_dir: str = DATA_DIR):
+    docs = []
+    for extension, loader_cls in LOADERS_BY_EXTENSION.items():
+        docs += DirectoryLoader(data_dir, glob=f"**/*.{extension}", loader_cls=loader_cls).load()
+    return docs
 
 
 def load_document(path: Path):
