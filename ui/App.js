@@ -209,13 +209,30 @@ async function sendMessage() {
             body: JSON.stringify({ message: text }),
         });
 
-        const data = await res.json();
         removeTypingIndicator();
 
         if (!res.ok) {
+            const data = await res.json();
             addMessage('ai', `⚠️ ${data.detail || 'Something went wrong.'}`);
-        } else {
-            addMessage('ai', data.answer);
+            return;
+        }
+
+        // Create an empty AI bubble and stream tokens into it
+        const aiMsg = addMessage('ai', '');
+        const bubble = aiMsg.querySelector('.bubble');
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let fullText = '';
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            fullText += chunk;
+            bubble.textContent = fullText;
+            scrollToBottom();
         }
     } catch (err) {
         removeTypingIndicator();

@@ -31,12 +31,12 @@ from typing import List
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 # Same public API your cli.py already relies on.
-from rag.chain import ask
+from rag.chain import ask, ask_stream
 from rag.ingest import build_index
 
 # ------------------------------------------------------------------
@@ -136,17 +136,19 @@ async def upload_files(files: List[UploadFile] = File(...)) -> UploadResponse:
 
 
 # ------------------------------------------------------------------
-# Chat
+# Chat (streaming — tokens sent word-by-word like ChatGPT)
 # ------------------------------------------------------------------
-@app.post("/api/chat", response_model=ChatResponse)
-def chat(payload: ChatRequest) -> ChatResponse:
+@app.post("/api/chat")
+def chat(payload: ChatRequest):
     question = payload.message.strip()
     if not question:
         raise HTTPException(status_code=400, detail="Message cannot be empty.")
 
-    try:
-        answer = ask(question)
-    except Exception as exc:  # noqa: BLE001
-        raise HTTPException(status_code=500, detail=f"Failed to answer: {exc}") from exc
+    def token_generator():
+        try:
+            for chunk in ask_stream(question):
+                yield chunk
+        except Exception as exc:
+            yield f"\n\n⚠️ Error: {exc}"
 
-    return ChatResponse(answer=answer)
+    return StreamingResponse(token_generator(), media_type="text/plain")
