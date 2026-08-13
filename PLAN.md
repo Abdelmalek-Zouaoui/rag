@@ -5,13 +5,13 @@ answer questions with a Groq-hosted LLM. This splits the next round of work by p
 
 ## Abdelmalek — Ingestion (`ingest.py` and around it)
 
-- [ ] Support more file types (`.docx`, `.html`, `.csv`)
-- [ ] Smarter chunking — section/semantic-aware splitting instead of fixed-size
+- [x] Support more file types (`.docx`, `.html`, `.csv`)
+- [x] Smarter chunking — section/semantic-aware splitting instead of fixed-size
       `RecursiveCharacterTextSplitter`
-- [ ] Attach richer metadata to chunks (source file, page number) so answers can cite sources
-- [ ] Incremental re-indexing — skip re-embedding documents that haven't changed
-- [ ] Evaluate embedding models — compare `all-MiniLM-L6-v2` against larger local models on
-      quality vs. speed
+- [x] Attach richer metadata to chunks (source file, page number) so answers can cite sources
+- [x] Incremental re-indexing — skip re-embedding documents that haven't changed
+- [x] Evaluate embedding models — compare `all-MiniLM-L6-v2` against larger local models on
+      quality vs. speed (kept `all-MiniLM-L6-v2`; see `scripts/evaluate_embeddings.py`)
 
 ## Amine — Retrieval & Generation (`chain.py` and around it)
 
