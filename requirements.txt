@@ -11,3 +11,6 @@ docx2txt>=0.8
 unstructured>=0.15.0
 python-dotenv>=1.0.0
 rank-bm25>=0.2.2
+fastapi
+uvicorn[standard]
+python-multipart
