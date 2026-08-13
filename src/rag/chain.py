@@ -1,16 +1,29 @@
+from fastembed.rerank.cross_encoder import TextCrossEncoder
 from langchain_chroma import Chroma
 from langchain_classic.retrievers import ContextualCompressionRetriever, EnsembleRetriever
 from langchain_classic.retrievers.document_compressors import CrossEncoderReranker
-from langchain_community.cross_encoders import HuggingFaceCrossEncoder
+from langchain_community.cross_encoders.base import BaseCrossEncoder
+from langchain_community.embeddings import FastEmbedEmbeddings
 from langchain_community.retrievers.bm25 import BM25Retriever
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_groq import ChatGroq
-from langchain_huggingface import HuggingFaceEmbeddings
 
 from rag.config import CHROMA_PERSIST_DIR, DATA_DIR, EMBEDDING_MODEL, GROQ_API_KEY, LLM_MODEL
 from rag.ingest import load_documents, split_documents
+
+RERANKER_MODEL = "Xenova/ms-marco-MiniLM-L-6-v2"
+
+
+class FastEmbedCrossEncoder(BaseCrossEncoder):
+    """Adapts fastembed's ONNX cross-encoder to LangChain's reranker interface (no torch needed)."""
+
+    def __init__(self, model_name: str):
+        self._model = TextCrossEncoder(model_name)
+
+    def score(self, text_pairs: list[tuple[str, str]]) -> list[float]:
+        return list(self._model.rerank_pairs(text_pairs))
 
 PROMPT = ChatPromptTemplate.from_template(
     """You are a helpful document assistant. Answer the question using ONLY the context below.
@@ -44,7 +57,7 @@ def format_docs(docs):
 
 def build_chain(data_dir: str = DATA_DIR, persist_dir: str = CHROMA_PERSIST_DIR):
     # 1. Vector Retriever (Semantic search via ChromaDB)
-    embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
+    embeddings = FastEmbedEmbeddings(model_name=EMBEDDING_MODEL)
     vectorstore = Chroma(persist_directory=persist_dir, embedding_function=embeddings)
     chroma_retriever = vectorstore.as_retriever(search_kwargs={"k": 6})
 
@@ -61,7 +74,7 @@ def build_chain(data_dir: str = DATA_DIR, persist_dir: str = CHROMA_PERSIST_DIR)
     )
 
     # 4. Reranker (Cross-Encoder scores each candidate and keeps top 4 best)
-    cross_encoder = HuggingFaceCrossEncoder(model_name="cross-encoder/ms-marco-MiniLM-L-6-v2")
+    cross_encoder = FastEmbedCrossEncoder(RERANKER_MODEL)
     reranker = CrossEncoderReranker(model=cross_encoder, top_n=4)
     retriever = ContextualCompressionRetriever(
         base_compressor=reranker,

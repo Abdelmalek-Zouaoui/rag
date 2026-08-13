@@ -4,14 +4,14 @@ from pathlib import Path
 
 from langchain_chroma import Chroma
 from langchain_community.document_loaders import (
+    BSHTMLLoader,
     CSVLoader,
     DirectoryLoader,
     Docx2txtLoader,
     PyPDFLoader,
     TextLoader,
-    UnstructuredHTMLLoader,
 )
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.embeddings import FastEmbedEmbeddings
 from langchain_text_splitters import MarkdownHeaderTextSplitter, RecursiveCharacterTextSplitter
 
 from rag.config import CHROMA_PERSIST_DIR, DATA_DIR, EMBEDDING_MODEL
@@ -21,7 +21,7 @@ LOADERS_BY_EXTENSION = {
     "md": TextLoader,
     "pdf": PyPDFLoader,
     "docx": Docx2txtLoader,
-    "html": UnstructuredHTMLLoader,
+    "html": BSHTMLLoader,
     "csv": CSVLoader,
 }
 
@@ -117,7 +117,7 @@ def build_index(data_dir: str = DATA_DIR, persist_dir: str = CHROMA_PERSIST_DIR)
         print("No changes detected. Index is already up to date.")
         return
 
-    embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
+    embeddings = FastEmbedEmbeddings(model_name=EMBEDDING_MODEL)
     store = Chroma(persist_directory=persist_dir, embedding_function=embeddings)
 
     for filename in deleted + changed_or_new:
