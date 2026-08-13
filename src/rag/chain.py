@@ -1,4 +1,5 @@
 import threading
+from collections import defaultdict
 
 from fastembed.rerank.cross_encoder import TextCrossEncoder
 from langchain_chroma import Chroma
@@ -9,13 +10,42 @@ from langchain_community.embeddings import FastEmbedEmbeddings
 from langchain_community.retrievers.bm25 import BM25Retriever
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import RunnablePassthrough
+from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 from langchain_groq import ChatGroq
 
 from rag.config import CHROMA_PERSIST_DIR, DATA_DIR, EMBEDDING_MODEL, GROQ_API_KEY, LLM_MODEL, ONNX_PROVIDERS
 from rag.ingest import load_documents, split_documents
 
 RERANKER_MODEL = "Xenova/ms-marco-MiniLM-L-6-v2"
+
+# Broad "what's in here" questions have no single chunk that represents the
+# whole document, so similarity search tends to surface an unrelated chunk
+# that merely shares vocabulary with the question. Route these to the
+# opening chunks of each file instead, where titles/intros actually live.
+SUMMARY_PHRASES = (
+    "what is this document about",
+    "what is this about",
+    "what are these documents about",
+    "summarize",
+    "summary",
+    "overview",
+    "what does this cover",
+    "main topic",
+    "main points",
+    "key points",
+)
+
+
+def is_summary_question(question: str) -> bool:
+    q = question.lower()
+    return any(phrase in q for phrase in SUMMARY_PHRASES)
+
+
+def leading_chunks_per_file(chunks, n: int = 3):
+    by_source = defaultdict(list)
+    for chunk in chunks:
+        by_source[chunk.metadata.get("source", "")].append(chunk)
+    return [chunk for file_chunks in by_source.values() for chunk in file_chunks[:n]]
 
 
 class FastEmbedCrossEncoder(BaseCrossEncoder):
@@ -85,8 +115,14 @@ def build_chain(data_dir: str = DATA_DIR, persist_dir: str = CHROMA_PERSIST_DIR)
 
     llm = ChatGroq(model=LLM_MODEL, api_key=GROQ_API_KEY)
 
+    overview_docs = leading_chunks_per_file(chunks)
+
+    def get_context(question: str) -> str:
+        docs = overview_docs if is_summary_question(question) else retriever.invoke(question)
+        return format_docs(docs)
+
     return (
-        {"context": retriever | format_docs, "question": RunnablePassthrough()}
+        {"context": RunnableLambda(get_context), "question": RunnablePassthrough()}
         | PROMPT
         | llm
         | StrOutputParser()
