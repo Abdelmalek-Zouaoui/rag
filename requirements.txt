@@ -14,3 +14,5 @@ rank-bm25>=0.2.2
 fastapi
 uvicorn[standard]
 python-multipart
+ragas
+datasets

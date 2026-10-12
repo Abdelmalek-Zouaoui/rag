@@ -2,8 +2,8 @@ import threading
 from collections import defaultdict
 
 from langchain_chroma import Chroma
-from langchain_classic.retrievers import ContextualCompressionRetriever, EnsembleRetriever
-from langchain_classic.retrievers.document_compressors import CrossEncoderReranker
+from langchain.retrievers import ContextualCompressionRetriever, EnsembleRetriever
+from langchain.retrievers.document_compressors import CrossEncoderReranker
 from langchain_community.cross_encoders.base import BaseCrossEncoder
 from langchain_community.retrievers.bm25 import BM25Retriever
 from langchain_core.output_parsers import StrOutputParser
@@ -81,7 +81,7 @@ def format_docs(docs):
     return "\n\n".join(formatted_chunks)
 
 
-def build_chain(data_dir: str = DATA_DIR, persist_dir: str = CHROMA_PERSIST_DIR, collection_name: str = "default"):
+def build_retriever(data_dir: str = DATA_DIR, persist_dir: str = CHROMA_PERSIST_DIR, collection_name: str = "default"):
     # 1. Vector Retriever (Semantic search via ChromaDB)
     vectorstore = Chroma(persist_directory=persist_dir, embedding_function=get_embeddings(), collection_name=collection_name)
     chroma_retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
@@ -104,9 +104,20 @@ def build_chain(data_dir: str = DATA_DIR, persist_dir: str = CHROMA_PERSIST_DIR,
         base_compressor=reranker,
         base_retriever=ensemble_retriever
     )
+    return retriever, chunks
 
+
+def retrieve_relevant_docs(question: str, data_dir: str = DATA_DIR, persist_dir: str = CHROMA_PERSIST_DIR, collection_name: str = "default"):
+    """Retrieve raw document objects for evaluation or debugging."""
+    retriever, chunks = build_retriever(data_dir=data_dir, persist_dir=persist_dir, collection_name=collection_name)
+    if is_summary_question(question):
+        return leading_chunks_per_file(chunks)
+    return retriever.invoke(question)
+
+
+def build_chain(data_dir: str = DATA_DIR, persist_dir: str = CHROMA_PERSIST_DIR, collection_name: str = "default"):
+    retriever, chunks = build_retriever(data_dir=data_dir, persist_dir=persist_dir, collection_name=collection_name)
     llm = ChatGroq(model=LLM_MODEL, api_key=GROQ_API_KEY)
-
     overview_docs = leading_chunks_per_file(chunks)
 
     def get_context(question: str) -> str:

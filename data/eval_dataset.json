@@ -1,0 +1,22 @@
+[
+  {
+    "question": "What is the probation period duration and when is the mid-probation review scheduled?",
+    "ground_truth": "The probation period lasts three months from the official start date, with a mid-probation performance review conducted at 60 days by the direct manager."
+  },
+  {
+    "question": "How much can employees claim for remote work equipment reimbursement and what is the deadline?",
+    "ground_truth": "Employees can claim up to $500 USD for home office setup reimbursement, and receipts must be submitted within 45 days of hire."
+  },
+  {
+    "question": "How many days of paid annual leave are employees entitled to, and how many unused days can be rolled over?",
+    "ground_truth": "Employees receive 25 days of paid annual leave per calendar year, and a maximum of 5 unused vacation days can be rolled over to the next year, expiring on March 31st."
+  },
+  {
+    "question": "What are the rules regarding corporate passwords and authentication?",
+    "ground_truth": "Mandatory Multi-Factor Authentication (MFA / 2FA) is required on all corporate accounts, and corporate passwords must be changed every 90 days without matching the previous 5 passwords."
+  },
+  {
+    "question": "What is the daily meal stipend during business travel, and for what expense amount is a receipt required?",
+    "ground_truth": "The daily meal allowance during business travel is up to $75 USD, and receipts are strictly required for any individual expense item exceeding $25 USD."
+  }
+]

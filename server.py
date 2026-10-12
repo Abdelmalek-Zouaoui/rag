@@ -27,9 +27,14 @@ from __future__ import annotations
 
 import shutil
 import threading
+import sys
 import uuid
 from pathlib import Path
 from typing import List
+
+ROOT_DIR = Path(__file__).resolve().parent
+if str(ROOT_DIR / "src") not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR / "src"))
 
 from fastapi import FastAPI, File, HTTPException, Request, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware

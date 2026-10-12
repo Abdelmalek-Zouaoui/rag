@@ -1,0 +1,82 @@
+{
+  "timestamp": "2026-10-12 17:49:21",
+  "llm_model": "openai/gpt-oss-20b",
+  "summary_scores": {
+    "faithfulness": 0.7666666666666666,
+    "answer_relevancy": 0.8781602797408448,
+    "context_precision": 0.9999999999,
+    "context_recall": 1.0
+  },
+  "samples": [
+    {
+      "user_input": "What is the probation period duration and when is the mid-probation review scheduled?",
+      "retrieved_contexts": [
+        "# Enterprise Operations & Human Resources Policy Manual  \n## 1. Onboarding and Probation\nAll new full-time employees undergo a mandatory probation period of **three (3) months** starting from their official start date. A mid-probation performance review is conducted at **60 days** by the direct manager. Upon successful completion of the three-month period, the employee transitions to permanent status with standard company benefits.",
+        "## 3. Annual Leave and Rollover\nFull-time employees receive **25 days of paid annual leave** per calendar year, accrued monthly. Employees are encouraged to take all accrued leave within the year. A maximum of **5 unused vacation days** may be rolled over into the subsequent calendar year, expiring on March 31st if not taken.",
+        "## 4. Security and Compliance Policy\nInformation security is paramount. All employees must configure **Mandatory Multi-Factor Authentication (MFA / 2FA)** on all corporate accounts, including email and internal systems. Corporate passwords must be changed every **90 days** and cannot match any of the previous 5 passwords. Unattended workstations must be locked immediately."
+      ],
+      "response": "**Probation period duration:**  \n- **Three (3) months** from the employee’s official start date.\n\n**Mid‑probation review:**  \n- Scheduled at **60 days** into the probation period, conducted by the employee’s direct manager.\n\n---\n\n**Sources**  \n- [Source: sample_company_policies.md]",
+      "reference": "The probation period lasts three months from the official start date, with a mid-probation performance review conducted at 60 days by the direct manager.",
+      "faithfulness": 0.6666666666666666,
+      "answer_relevancy": 0.9962306951394045,
+      "context_precision": 0.9999999999,
+      "context_recall": 1.0
+    },
+    {
+      "user_input": "How much can employees claim for remote work equipment reimbursement and what is the deadline?",
+      "retrieved_contexts": [
+        "## 2. Remote Work and Home Office Allowance\nEmployees approved for hybrid or remote work are eligible for a one-time home office setup reimbursement of up to **$500 USD**. Eligible purchases include ergonomic chairs, external monitors, keyboards, mice, and desk accessories. Receipts must be submitted through the expense portal within 45 days of hire.",
+        "## 5. Business Travel and Expense Reimbursement\nWhen traveling for company business, employees receive a daily meal allowance (per diem) of up to **$75 USD**. Receipts are strictly required for any individual expense item exceeding **$25 USD**. All travel bookings must be approved at least 14 days in advance by department directors.",
+        "# Enterprise Operations & Human Resources Policy Manual  \n## 1. Onboarding and Probation\nAll new full-time employees undergo a mandatory probation period of **three (3) months** starting from their official start date. A mid-probation performance review is conducted at **60 days** by the direct manager. Upon successful completion of the three-month period, the employee transitions to permanent status with standard company benefits."
+      ],
+      "response": "Employees approved for hybrid or remote work can claim a **one‑time reimbursement of up to $500 USD** for home‑office equipment such as ergonomic chairs, external monitors, keyboards, mice, and desk accessories.  \n\n**Deadline for submitting receipts:**  \n- Receipts must be uploaded to the expense portal **within 45 days of hire**.  \n\n---\n\n**Sources**  \n- [Source: sample_company_policies.md, Section 2 – Remote Work and Home Office Allowance]",
+      "reference": "Employees can claim up to $500 USD for home office setup reimbursement, and receipts must be submitted within 45 days of hire.",
+      "faithfulness": 1.0,
+      "answer_relevancy": 0.635947153614632,
+      "context_precision": 0.9999999999,
+      "context_recall": 1.0
+    },
+    {
+      "user_input": "How many days of paid annual leave are employees entitled to, and how many unused days can be rolled over?",
+      "retrieved_contexts": [
+        "## 3. Annual Leave and Rollover\nFull-time employees receive **25 days of paid annual leave** per calendar year, accrued monthly. Employees are encouraged to take all accrued leave within the year. A maximum of **5 unused vacation days** may be rolled over into the subsequent calendar year, expiring on March 31st if not taken.",
+        "## 5. Business Travel and Expense Reimbursement\nWhen traveling for company business, employees receive a daily meal allowance (per diem) of up to **$75 USD**. Receipts are strictly required for any individual expense item exceeding **$25 USD**. All travel bookings must be approved at least 14 days in advance by department directors.",
+        "## 2. Remote Work and Home Office Allowance\nEmployees approved for hybrid or remote work are eligible for a one-time home office setup reimbursement of up to **$500 USD**. Eligible purchases include ergonomic chairs, external monitors, keyboards, mice, and desk accessories. Receipts must be submitted through the expense portal within 45 days of hire."
+      ],
+      "response": "Employees are entitled to **25 days of paid annual leave** per calendar year.  \nA maximum of **5 unused vacation days** may be rolled over into the next calendar year, expiring on March 31st if not taken.  \n\n**Sources**  \n- [Source 1: sample_company_policies.md, Page 3]",
+      "reference": "Employees receive 25 days of paid annual leave per calendar year, and a maximum of 5 unused vacation days can be rolled over to the next year, expiring on March 31st.",
+      "faithfulness": 1.0,
+      "answer_relevancy": 0.8435777535304549,
+      "context_precision": 0.9999999999,
+      "context_recall": 1.0
+    },
+    {
+      "user_input": "What are the rules regarding corporate passwords and authentication?",
+      "retrieved_contexts": [
+        "## 4. Security and Compliance Policy\nInformation security is paramount. All employees must configure **Mandatory Multi-Factor Authentication (MFA / 2FA)** on all corporate accounts, including email and internal systems. Corporate passwords must be changed every **90 days** and cannot match any of the previous 5 passwords. Unattended workstations must be locked immediately.",
+        "# Enterprise Operations & Human Resources Policy Manual  \n## 1. Onboarding and Probation\nAll new full-time employees undergo a mandatory probation period of **three (3) months** starting from their official start date. A mid-probation performance review is conducted at **60 days** by the direct manager. Upon successful completion of the three-month period, the employee transitions to permanent status with standard company benefits.",
+        "## 2. Remote Work and Home Office Allowance\nEmployees approved for hybrid or remote work are eligible for a one-time home office setup reimbursement of up to **$500 USD**. Eligible purchases include ergonomic chairs, external monitors, keyboards, mice, and desk accessories. Receipts must be submitted through the expense portal within 45 days of hire."
+      ],
+      "response": "**Corporate Passwords and Authentication Rules**\n\n- **Mandatory Multi‑Factor Authentication (MFA / 2FA)**  \n  All corporate accounts—including email and internal systems—must use MFA/2FA. This is the primary authentication requirement for accessing any company resources.\n\n- **Password Change Policy**  \n  - Passwords must be updated **every 90 days**.  \n  - New passwords cannot match any of the **previous five** passwords used by the account.\n\n- **Workstation Security**  \n  While not directly about passwords, the policy also requires that any **unattended workstation be locked immediately** to prevent unauthorized access.\n\nThese rules ensure that corporate authentication remains strong and that password practices reduce the risk of credential compromise.  \n\n**Sources**  \n- [Source: sample_company_policies.md, Section 4 – Security and Compliance Policy]",
+      "reference": "Mandatory Multi-Factor Authentication (MFA / 2FA) is required on all corporate accounts, and corporate passwords must be changed every 90 days without matching the previous 5 passwords.",
+      "faithfulness": 0.6666666666666666,
+      "answer_relevancy": 0.964771247239412,
+      "context_precision": 0.9999999999,
+      "context_recall": 1.0
+    },
+    {
+      "user_input": "What is the daily meal stipend during business travel, and for what expense amount is a receipt required?",
+      "retrieved_contexts": [
+        "## 5. Business Travel and Expense Reimbursement\nWhen traveling for company business, employees receive a daily meal allowance (per diem) of up to **$75 USD**. Receipts are strictly required for any individual expense item exceeding **$25 USD**. All travel bookings must be approved at least 14 days in advance by department directors.",
+        "## 2. Remote Work and Home Office Allowance\nEmployees approved for hybrid or remote work are eligible for a one-time home office setup reimbursement of up to **$500 USD**. Eligible purchases include ergonomic chairs, external monitors, keyboards, mice, and desk accessories. Receipts must be submitted through the expense portal within 45 days of hire.",
+        "## 3. Annual Leave and Rollover\nFull-time employees receive **25 days of paid annual leave** per calendar year, accrued monthly. Employees are encouraged to take all accrued leave within the year. A maximum of **5 unused vacation days** may be rolled over into the subsequent calendar year, expiring on March 31st if not taken."
+      ],
+      "response": "**Daily meal stipend during business travel:**  \n- **$75 USD** per day.\n\n**Receipt requirement:**  \n- A receipt is **required for any individual expense item that exceeds $25 USD**.\n\n---\n\n**Sources**  \n- [Source: sample_company_policies.md, Business Travel and Expense Reimbursement]",
+      "reference": "The daily meal allowance during business travel is up to $75 USD, and receipts are strictly required for any individual expense item exceeding $25 USD.",
+      "faithfulness": 0.5,
+      "answer_relevancy": 0.9502745491803207,
+      "context_precision": 0.9999999999,
+      "context_recall": 1.0
+    }
+  ]
+}

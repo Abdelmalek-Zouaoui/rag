@@ -15,12 +15,13 @@ answer questions with a Groq-hosted LLM. This splits the next round of work by p
 
 ## Amine — Retrieval & Generation (`chain.py` and around it)
 
-- [ ] Hybrid retrieval — combine BM25 keyword search with vector search
-- [ ] Add a reranking step (e.g. a cross-encoder) over retrieved chunks
-- [ ] Prompt improvements — have the model cite which chunk/source it used
-- [ ] Stream responses from Groq instead of waiting for the full answer
-- [ ] Add a simple chat UI (e.g. Streamlit) on top of `build_chain()`
-- [ ] Put together a small Q&A test set to sanity-check answer quality as the chain changes
+- [x] Hybrid retrieval — combine BM25 keyword search with vector search
+- [x] Add a reranking step (e.g. a cross-encoder) over retrieved chunks
+- [x] Prompt improvements — have the model cite which chunk/source it used
+- [x] Stream responses from Groq instead of waiting for the full answer
+- [x] Add a simple chat UI (FastAPI + HTML/JS/CSS) on top of `build_chain()`
+- [x] Put together a small Q&A test set to sanity-check answer quality as the chain changes
+- [x] Automated Ragas evaluation benchmark (`scripts/evaluate_rag.py`)
 
 ## Shared / infra
 

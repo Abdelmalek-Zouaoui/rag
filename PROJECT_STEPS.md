@@ -14,5 +14,9 @@ A log of what's been done to set up the `rag` project, in order.
    [Groq API](https://console.groq.com) (`llama-3.3-70b-versatile`) for fast hosted inference,
    and moved embeddings to a local HuggingFace `sentence-transformers` model
    (`all-MiniLM-L6-v2`, CPU, no API key) since Groq doesn't serve embedding models.
+6. **Integrated Automated Ragas Evaluation Framework** — added `ragas` benchmark suite to
+   quantitatively evaluate the pipeline on the RAG Triad (Faithfulness, Answer Relevance,
+   Context Precision, Context Recall) using Groq as an LLM judge (`scripts/evaluate_rag.py`,
+   `data/eval_dataset.json`).
 
 See [PLAN.md](PLAN.md) for what's next and how the remaining work is split.
